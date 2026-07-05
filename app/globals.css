@@ -6,8 +6,8 @@
   --color-concrete: #232327;
   --color-bone: #ece7dd;
   --color-stone: #8a857b;
-  --color-gilt: #c9a96e;
-  --color-gilt-deep: #9a7b45;
+  --color-gilt: #bd9160;
+  --color-gilt-deep: #8f6d42;
 
   --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
@@ -37,7 +37,7 @@ body {
 }
 
 ::selection {
-  background: rgba(201, 169, 110, 0.28);
+  background: rgba(189, 145, 96, 0.28);
   color: var(--color-bone);
 }
 
@@ -69,13 +69,13 @@ body {
   letter-spacing: -0.015em;
 }
 
-/* Hairline rule with gold fade */
+/* Hairline rule with bronze fade */
 .gilt-rule {
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(201, 169, 110, 0.55),
+    rgba(189, 145, 96, 0.55),
     transparent
   );
 }
@@ -90,18 +90,18 @@ body {
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: #0c0b09;
-  background: linear-gradient(135deg, #ddc294, #b9945c);
+  background: linear-gradient(135deg, #d9ba8c, #a8834f);
   border-radius: 999px;
   transition:
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     filter 0.5s;
-  box-shadow: 0 0 0 0 rgba(201, 169, 110, 0);
+  box-shadow: 0 0 0 0 rgba(189, 145, 96, 0);
 }
 .btn-primary:hover {
   transform: translateY(-2px);
   filter: brightness(1.06);
-  box-shadow: 0 12px 40px -8px rgba(201, 169, 110, 0.45);
+  box-shadow: 0 12px 40px -8px rgba(189, 145, 96, 0.45);
 }
 
 .btn-ghost {
@@ -122,8 +122,8 @@ body {
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .btn-ghost:hover {
-  border-color: rgba(201, 169, 110, 0.6);
-  background: rgba(201, 169, 110, 0.07);
+  border-color: rgba(189, 145, 96, 0.6);
+  background: rgba(189, 145, 96, 0.07);
   transform: translateY(-2px);
 }
 
@@ -150,7 +150,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent, #c9a96e);
+  background: linear-gradient(to bottom, transparent, #bd9160);
   animation: scroll-drop 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 

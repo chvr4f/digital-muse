@@ -161,7 +161,7 @@ export function Lights() {
   // light targets must live in the scene graph or their matrices never update
   const sunTarget = useMemo(() => {
     const o = new THREE.Object3D();
-    o.position.set(0, 0, -14);
+    o.position.set(-6.5, 0, -14);
     return o;
   }, []);
 
@@ -172,13 +172,13 @@ export function Lights() {
       <ambientLight intensity={0.22} color="#cfc8bc" />
       <hemisphereLight intensity={0.18} color="#e8dcc4" groundColor="#0d0c0e" />
 
-      {/* key sun through the lobby skylight */}
+      {/* low sunset sun angling through the oculus onto the sculpture */}
       <directionalLight
         castShadow
-        position={[4, 18, -9]}
+        position={[-1.5, 18, -8]}
         target={sunTarget}
-        intensity={2.8}
-        color="#ffe3b4"
+        intensity={3.2}
+        color="#ffc890"
         shadow-mapSize={[2048, 2048]}
         shadow-camera-near={4}
         shadow-camera-far={40}

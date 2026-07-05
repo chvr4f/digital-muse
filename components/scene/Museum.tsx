@@ -185,6 +185,10 @@ function CorridorSculptures() {
   );
 }
 
+/** Where the monumental sculpture stands — the circular oculus sits above it. */
+export const SCULPTURE_POS: [number, number, number] = [-5.5, 0, -13];
+const OCULUS_R = 3.6;
+
 export default function Museum() {
   const { concreteWall, concretePartition, concreteDark } = getMaterials();
   const marble = useMemo(() => {
@@ -192,6 +196,21 @@ export default function Museum() {
     // floor is 30 × 170 m; one texture tile (4 slabs) ≈ 7.5 m
     for (const t of [maps.map, maps.roughnessMap, maps.normalMap]) t.repeat.set(4, 22.5);
     return maps;
+  }, []);
+
+  // lobby ceiling slab with a circular oculus punched over the sculpture
+  // (shape-local y maps to world z under the rotation below)
+  const lobbyCeiling = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-14, -30);
+    shape.lineTo(14, -30);
+    shape.lineTo(14, 15);
+    shape.lineTo(-14, 15);
+    shape.closePath();
+    const hole = new THREE.Path();
+    hole.absarc(SCULPTURE_POS[0], SCULPTURE_POS[2], OCULUS_R, 0, Math.PI * 2, true);
+    shape.holes.push(hole);
+    return new THREE.ShapeGeometry(shape, 48);
   }, []);
 
   const length = HALL.zStart - HALL.zEnd; // 158
@@ -239,34 +258,30 @@ export default function Museum() {
         <boxGeometry args={[HALL.width + 2, HALL.height, 1]} />
       </mesh>
 
-      {/* ——— ceiling, with a skylight opening over the lobby (x −4..4, z −18..−8) ——— */}
-      {/* strip before skylight */}
-      <mesh rotation-x={Math.PI / 2} position={[0, HALL.height, (HALL.zStart + -8) / 2]} material={concreteDark}>
-        <planeGeometry args={[HALL.width + 2, HALL.zStart - -8]} />
-      </mesh>
-      {/* strips beside skylight */}
-      <mesh rotation-x={Math.PI / 2} position={[-((HALL.width + 2) / 4 + 2), HALL.height, -13]} material={concreteDark}>
-        <planeGeometry args={[(HALL.width + 2) / 2 - 4, 10]} />
-      </mesh>
-      <mesh rotation-x={Math.PI / 2} position={[(HALL.width + 2) / 4 + 2, HALL.height, -13]} material={concreteDark}>
-        <planeGeometry args={[(HALL.width + 2) / 2 - 4, 10]} />
-      </mesh>
+      {/* ——— lobby ceiling with circular oculus over the sculpture ——— */}
+      <mesh geometry={lobbyCeiling} rotation-x={Math.PI / 2} position-y={HALL.height} material={concreteDark} />
       {/* rest of ceiling to the end */}
-      <mesh rotation-x={Math.PI / 2} position={[0, HALL.height, (-18 + HALL.zEnd) / 2]} material={concreteDark}>
-        <planeGeometry args={[HALL.width + 2, -18 - HALL.zEnd]} />
+      <mesh rotation-x={Math.PI / 2} position={[0, HALL.height, (-30 + HALL.zEnd) / 2]} material={concreteDark}>
+        <planeGeometry args={[HALL.width + 2, -30 - HALL.zEnd]} />
       </mesh>
 
-      {/* glowing skylight plane (bloom picks this up) */}
-      <mesh rotation-x={Math.PI / 2} position={[0, HALL.height + 0.02, -13]}>
-        <planeGeometry args={[8, 10]} />
-        <meshBasicMaterial color="#fff4e0" toneMapped={false} />
+      {/* glowing sky disc seen through the oculus (bloom picks this up) */}
+      <mesh
+        rotation-x={Math.PI / 2}
+        position={[SCULPTURE_POS[0], HALL.height + 0.06, SCULPTURE_POS[2]]}
+      >
+        <circleGeometry args={[OCULUS_R - 0.05, 64]} />
+        <meshBasicMaterial color="#ffeccb" toneMapped={false} />
       </mesh>
-      {/* skylight mullions */}
-      {[-2, 0, 2].map((x) => (
-        <mesh key={x} position={[x, HALL.height - 0.04, -13]} material={concreteDark}>
-          <boxGeometry args={[0.12, 0.12, 10]} />
-        </mesh>
-      ))}
+      {/* oculus rim + bronze reveal ring */}
+      <mesh position={[SCULPTURE_POS[0], HALL.height - 0.02, SCULPTURE_POS[2]]} rotation-x={Math.PI / 2}>
+        <torusGeometry args={[OCULUS_R + 0.1, 0.12, 12, 64]} />
+        <meshStandardMaterial color="#1c1b1f" roughness={0.8} />
+      </mesh>
+      <mesh position={[SCULPTURE_POS[0], HALL.height - 0.1, SCULPTURE_POS[2]]} rotation-x={Math.PI / 2}>
+        <torusGeometry args={[OCULUS_R - 0.12, 0.02, 8, 64]} />
+        <meshBasicMaterial color="#8a7148" />
+      </mesh>
 
       {/* smaller skylight glows above later rooms */}
       <mesh rotation-x={Math.PI / 2} position={[0, HALL.height - 0.02, -60]}>
@@ -291,8 +306,8 @@ export default function Museum() {
         <boxGeometry args={[3, HALL.height - 3, 18]} />
       </mesh>
 
-      {/* ——— lobby furniture ——— */}
-      <Bench position={[-6.5, 0, -10]} rotationY={Math.PI / 2} />
+      {/* ——— lobby furniture (kept clear of the sculpture at x −5.5) ——— */}
+      <Bench position={[-8.6, 0, -5.5]} rotationY={Math.PI / 2} />
       <Bench position={[6.5, 0, -16]} rotationY={Math.PI / 2} />
       <Bench position={[0, 0, -26]} />
       {/* exhibition room bench */}

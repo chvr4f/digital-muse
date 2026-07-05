@@ -4,8 +4,9 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { world, damp } from "@/lib/world";
+import { SCULPTURE_POS } from "./Museum";
 
-/** Monumental marble knot at the heart of the lobby, under the skylight. */
+/** Monumental marble knot on the left of the lobby, under the oculus. */
 export default function Sculpture() {
   const knot = useRef<THREE.Mesh>(null);
   const sway = useRef(0);
@@ -20,7 +21,7 @@ export default function Sculpture() {
   });
 
   return (
-    <group position={[0, 0, -14]}>
+    <group position={SCULPTURE_POS}>
       {/* stepped stone base */}
       <mesh position-y={0.25} castShadow receiveShadow>
         <cylinderGeometry args={[2.4, 2.6, 0.5, 48]} />

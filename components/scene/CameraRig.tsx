@@ -13,8 +13,8 @@ import { world, clamp01, damp } from "@/lib/world";
 const PATH_POINTS = [
   new THREE.Vector3(0, 3.2, 11),
   new THREE.Vector3(0, 2.6, 2),
-  new THREE.Vector3(-2.4, 2.4, -6),
-  new THREE.Vector3(-3.4, 2.5, -14),
+  new THREE.Vector3(1.8, 2.4, -6),
+  new THREE.Vector3(2.6, 2.5, -14),
   new THREE.Vector3(0, 2.3, -30),
   new THREE.Vector3(0, 2.2, -40),
   new THREE.Vector3(0, 2.3, -50),
@@ -27,9 +27,9 @@ const PATH_POINTS = [
 ];
 
 const LOOK_POINTS = [
-  new THREE.Vector3(0, 2.6, 0),
-  new THREE.Vector3(0.4, 2.8, -11),
-  new THREE.Vector3(0.8, 3.2, -14),
+  new THREE.Vector3(-1.2, 2.7, 0),
+  new THREE.Vector3(-2.6, 2.9, -10),
+  new THREE.Vector3(-4.8, 3.3, -13.2),
   new THREE.Vector3(0.4, 2.4, -28),
   new THREE.Vector3(0, 2.2, -39),
   new THREE.Vector3(0, 2.3, -48),
@@ -55,7 +55,7 @@ export default function CameraRig() {
   const pos = useMemo(() => new THREE.Vector3(), []);
   const look = useMemo(() => new THREE.Vector3(), []);
   const introFrom = useMemo(() => new THREE.Vector3(0, 6.5, 15.5), []);
-  const introLook = useMemo(() => new THREE.Vector3(0, 4.2, -6), []);
+  const introLook = useMemo(() => new THREE.Vector3(-1.8, 4.2, -7), []);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20);

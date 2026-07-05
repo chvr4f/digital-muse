@@ -53,7 +53,7 @@ export default function Scene() {
 
         {/* soft baked contact shadows grounding the lobby set pieces */}
         <ContactShadows
-          position={[0, 0.02, -14]}
+          position={[-5.5, 0.02, -13]}
           scale={14}
           far={4.5}
           blur={2.4}
@@ -73,8 +73,11 @@ export default function Scene() {
           color="#000000"
         />
 
-        {/* volumetric sunlight under each skylight */}
-        <LightShaft position={[0, 6, -13]} topRadius={3.2} bottomRadius={5.4} height={12} intensity={0.2} />
+        {/* layered god rays falling through the oculus, leaning with the sunset */}
+        <group position={[-5.5, 6, -13]} rotation-z={0.075}>
+          <LightShaft position={[0, 0, 0]} topRadius={3.3} bottomRadius={5} height={12} intensity={0.16} color="#ffd9a4" />
+          <LightShaft position={[0, 0, 0]} topRadius={1.7} bottomRadius={2.9} height={12} intensity={0.24} color="#ffe6bc" />
+        </group>
         <LightShaft position={[0, 6, -60]} topRadius={1.2} bottomRadius={2.6} height={12} intensity={0.13} />
         <LightShaft
           position={[0, 6, -96]}

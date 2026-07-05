@@ -119,17 +119,17 @@ export default function Overlay() {
         </div>
       </section>
 
-      {/* ——— 1 · the space ——— */}
-      <section data-panel="1" className="pointer-events-none fixed inset-0 z-20 flex items-center">
-        <div className="max-w-xl px-8 md:px-[9vw]">
+      {/* ——— 1 · the space (sculpture holds the left of frame) ——— */}
+      <section data-panel="1" className="pointer-events-none fixed inset-0 z-20 flex items-center justify-end">
+        <div className="max-w-xl px-8 text-right md:px-[9vw]">
           <p data-rv className="museum-label mb-6">
             01 — The Space
           </p>
           <h2 data-rv className="headline text-bone" style={{ fontSize: "clamp(2.2rem, 4.6vw, 4.2rem)" }}>
             Architecture for the digital age.
           </h2>
-          <div data-rv className="gilt-rule my-8 w-24" />
-          <p data-rv className="max-w-md text-sm font-light leading-relaxed text-bone/60 md:text-base">
+          <div data-rv className="gilt-rule my-8 ml-auto w-24" />
+          <p data-rv className="ml-auto max-w-md text-sm font-light leading-relaxed text-bone/60 md:text-base">
             Every Muse museum is a real place — light, stone, and silence rendered for the browser.
             Your visitors don&rsquo;t scroll a feed. They walk your halls.
           </p>
@@ -137,16 +137,16 @@ export default function Overlay() {
       </section>
 
       {/* ——— 2 · exhibitions ——— */}
-      <section data-panel="2" className="pointer-events-none fixed inset-0 z-20 flex items-center justify-end">
-        <div className="max-w-xl px-8 text-right md:px-[9vw]">
+      <section data-panel="2" className="pointer-events-none fixed inset-0 z-20 flex items-center">
+        <div className="max-w-xl px-8 md:px-[9vw]">
           <p data-rv className="museum-label mb-6">
             02 — Exhibitions
           </p>
           <h2 data-rv className="headline text-bone" style={{ fontSize: "clamp(2.2rem, 4.6vw, 4.2rem)" }}>
             Every collection deserves a wing of its own.
           </h2>
-          <div data-rv className="gilt-rule my-8 ml-auto w-24" />
-          <p data-rv className="ml-auto max-w-md text-sm font-light leading-relaxed text-bone/60 md:text-base">
+          <div data-rv className="gilt-rule my-8 w-24" />
+          <p data-rv className="max-w-md text-sm font-light leading-relaxed text-bone/60 md:text-base">
             Compose unlimited rooms. Sequence the walk. Decide what your visitor sees first, and
             what they discover last — the way a curator would.
           </p>
