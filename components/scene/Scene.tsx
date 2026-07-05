@@ -1,7 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
-import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing";
+import { Environment, Lightformer, ContactShadows } from "@react-three/drei";
+import { EffectComposer, Bloom, DepthOfField, Noise, Vignette, N8AO, SMAA } from "@react-three/postprocessing";
 import Museum from "./Museum";
 import Sculpture from "./Sculpture";
 import Paintings from "./Paintings";
@@ -20,6 +21,27 @@ export default function Scene() {
       <CameraRig />
       <Lights />
 
+      {/*
+       * IBL: a baked environment built from museum-shaped light panels — a
+       * warm skylight card overhead, dim cool side fills, a faint floor
+       * bounce. Gives every PBR material soft "global illumination" and
+       * physically plausible reflections without shipping an HDRI file.
+       */}
+      <Environment frames={1} resolution={256} environmentIntensity={0.55}>
+        <color attach="background" args={["#0b0a0c"]} />
+        <Lightformer
+          intensity={5}
+          rotation-x={Math.PI / 2}
+          position={[0, 8, -6]}
+          scale={[9, 12, 1]}
+          color="#fff1d6"
+        />
+        <Lightformer intensity={0.7} rotation-y={Math.PI / 2} position={[-12, 3, 0]} scale={[40, 5, 1]} color="#4a4238" />
+        <Lightformer intensity={0.7} rotation-y={-Math.PI / 2} position={[12, 3, 0]} scale={[40, 5, 1]} color="#3a3a46" />
+        <Lightformer intensity={1.1} rotation-x={-Math.PI / 2} position={[0, -4, -8]} scale={[24, 50, 1]} color="#221d15" />
+        <Lightformer intensity={0.5} position={[0, 4, -30]} scale={[18, 8, 1]} color="#2e2a22" />
+      </Environment>
+
       <Suspense fallback={null}>
         <Museum />
         <Sculpture />
@@ -28,6 +50,28 @@ export default function Scene() {
         <StoreGallery />
         <MembershipRoom />
         <FinalRoom />
+
+        {/* soft baked contact shadows grounding the lobby set pieces */}
+        <ContactShadows
+          position={[0, 0.02, -14]}
+          scale={14}
+          far={4.5}
+          blur={2.4}
+          opacity={0.6}
+          resolution={512}
+          frames={1}
+          color="#000000"
+        />
+        <ContactShadows
+          position={[0, 0.02, -40]}
+          scale={13}
+          far={3}
+          blur={2.6}
+          opacity={0.5}
+          resolution={256}
+          frames={1}
+          color="#000000"
+        />
 
         {/* volumetric sunlight under each skylight */}
         <LightShaft position={[0, 6, -13]} topRadius={3.2} bottomRadius={5.4} height={12} intensity={0.2} />
@@ -49,13 +93,16 @@ export default function Scene() {
           <Bloom intensity={0.5} luminanceThreshold={0.75} luminanceSmoothing={0.25} mipmapBlur />
           <Noise premultiply opacity={0.45} />
           <Vignette eskil={false} offset={0.16} darkness={0.72} />
+          <SMAA />
         </EffectComposer>
       ) : (
         <EffectComposer multisampling={0}>
+          <N8AO aoRadius={1.4} intensity={2.8} distanceFalloff={0.6} quality="medium" halfRes color="black" />
           <DepthOfField focusDistance={0.028} focalLength={0.085} bokehScale={1.8} height={480} />
           <Bloom intensity={0.55} luminanceThreshold={0.72} luminanceSmoothing={0.25} mipmapBlur />
-          <Noise premultiply opacity={0.45} />
+          <Noise premultiply opacity={0.42} />
           <Vignette eskil={false} offset={0.16} darkness={0.72} />
+          <SMAA />
         </EffectComposer>
       )}
     </>

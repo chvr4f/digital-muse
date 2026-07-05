@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { MeshReflectorMaterial } from "@react-three/drei";
+import { getMarbleMaps, getConcreteMaps } from "@/lib/textures";
 
 /**
  * Museum plan (all rooms share long side walls at x = ±13, ceiling y = 12):
@@ -27,42 +28,92 @@ export const HALL = {
   doorways: [-30, -48, -70, -88, -104, -122],
 };
 
-const concrete = new THREE.MeshStandardMaterial({
-  color: "#37363b",
-  roughness: 0.94,
-  metalness: 0.02,
-});
-const concreteDark = new THREE.MeshStandardMaterial({
-  color: "#232227",
-  roughness: 0.96,
-  metalness: 0.0,
-});
-const woodDark = new THREE.MeshStandardMaterial({
-  color: "#2b2118",
-  roughness: 0.55,
-  metalness: 0.05,
-});
-const marbleWhite = new THREE.MeshPhysicalMaterial({
-  color: "#dad4c8",
-  roughness: 0.32,
-  metalness: 0.0,
-  clearcoat: 0.25,
-  clearcoatRoughness: 0.6,
-});
+type MuseumMats = {
+  concreteWall: THREE.MeshStandardMaterial;
+  concretePartition: THREE.MeshStandardMaterial;
+  concreteDark: THREE.MeshStandardMaterial;
+  woodDark: THREE.MeshStandardMaterial;
+  marbleWhite: THREE.MeshPhysicalMaterial;
+};
+
+let mats: MuseumMats | null = null;
+
+/** Textured PBR material set, built lazily on the client (canvas-generated maps). */
+export function getMaterials(): MuseumMats {
+  if (mats) return mats;
+  const concrete = getConcreteMaps();
+
+  const cloneSet = (repeatX: number, repeatY: number) => {
+    const set = {
+      map: concrete.map.clone(),
+      roughnessMap: concrete.roughnessMap.clone(),
+      normalMap: concrete.normalMap.clone(),
+    };
+    for (const t of Object.values(set)) {
+      t.repeat.set(repeatX, repeatY);
+      t.needsUpdate = true;
+    }
+    return set;
+  };
+
+  // long side walls: 158 m × 12 m, concrete tile ≈ 6.5 m
+  const wallSet = cloneSet(24, 1.85);
+  // partitions and end walls: faces 10–28 m wide
+  const partSet = cloneSet(2.2, 1.85);
+
+  mats = {
+    concreteWall: new THREE.MeshStandardMaterial({
+      ...wallSet,
+      normalScale: new THREE.Vector2(0.7, 0.7),
+      roughness: 1,
+      metalness: 0.02,
+      envMapIntensity: 0.35,
+    }),
+    concretePartition: new THREE.MeshStandardMaterial({
+      ...partSet,
+      normalScale: new THREE.Vector2(0.7, 0.7),
+      roughness: 1,
+      metalness: 0.02,
+      envMapIntensity: 0.35,
+    }),
+    concreteDark: new THREE.MeshStandardMaterial({
+      color: "#232227",
+      roughness: 0.96,
+      metalness: 0.0,
+      envMapIntensity: 0.2,
+    }),
+    woodDark: new THREE.MeshStandardMaterial({
+      color: "#2b2118",
+      roughness: 0.45,
+      metalness: 0.05,
+      envMapIntensity: 0.55,
+    }),
+    marbleWhite: new THREE.MeshPhysicalMaterial({
+      color: "#dad4c8",
+      roughness: 0.3,
+      metalness: 0.0,
+      clearcoat: 0.3,
+      clearcoatRoughness: 0.55,
+      envMapIntensity: 0.85,
+    }),
+  };
+  return mats;
+}
 
 function PartitionWall({ z }: { z: number }) {
+  const { concretePartition, concreteDark } = getMaterials();
   // two blocks leaving a 6-unit-wide, 7-unit-tall doorway in the middle
   const sideW = (HALL.width - 6) / 2; // 10
   return (
     <group position-z={z}>
-      <mesh position={[-(3 + sideW / 2), HALL.height / 2, 0]} material={concrete}>
+      <mesh position={[-(3 + sideW / 2), HALL.height / 2, 0]} material={concretePartition}>
         <boxGeometry args={[sideW, HALL.height, 1]} />
       </mesh>
-      <mesh position={[3 + sideW / 2, HALL.height / 2, 0]} material={concrete}>
+      <mesh position={[3 + sideW / 2, HALL.height / 2, 0]} material={concretePartition}>
         <boxGeometry args={[sideW, HALL.height, 1]} />
       </mesh>
       {/* lintel above the doorway */}
-      <mesh position={[0, 7 + (HALL.height - 7) / 2, 0]} material={concrete}>
+      <mesh position={[0, 7 + (HALL.height - 7) / 2, 0]} material={concreteDark}>
         <boxGeometry args={[6.06, HALL.height - 7, 1]} />
       </mesh>
       {/* thin gold reveal strip framing the opening */}
@@ -75,6 +126,7 @@ function PartitionWall({ z }: { z: number }) {
 }
 
 function Bench({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
+  const { woodDark, concreteDark } = getMaterials();
   return (
     <group position={position} rotation-y={rotationY}>
       <mesh position-y={0.42} castShadow material={woodDark}>
@@ -99,6 +151,7 @@ export function Plinth({
   height?: number;
   size?: number;
 }) {
+  const { concreteDark } = getMaterials();
   return (
     <mesh position={[position[0], position[1] + height / 2, position[2]]} castShadow material={concreteDark}>
       <boxGeometry args={[size, height, size]} />
@@ -108,6 +161,7 @@ export function Plinth({
 
 /** Small marble studies lining the sculpture corridor. */
 function CorridorSculptures() {
+  const { marbleWhite } = getMaterials();
   const pieces = useMemo(
     () => [
       { z: -34, x: -4.6, geo: <icosahedronGeometry args={[0.55, 0]} /> },
@@ -132,43 +186,56 @@ function CorridorSculptures() {
 }
 
 export default function Museum() {
-  const length = HALL.zStart - HALL.zEnd; // 162
-  const zMid = (HALL.zStart + HALL.zEnd) / 2; // -67
+  const { concreteWall, concretePartition, concreteDark } = getMaterials();
+  const marble = useMemo(() => {
+    const maps = getMarbleMaps();
+    // floor is 30 × 170 m; one texture tile (4 slabs) ≈ 7.5 m
+    for (const t of [maps.map, maps.roughnessMap, maps.normalMap]) t.repeat.set(4, 22.5);
+    return maps;
+  }, []);
+
+  const length = HALL.zStart - HALL.zEnd; // 158
+  const zMid = (HALL.zStart + HALL.zEnd) / 2; // -65
 
   return (
     <group>
-      {/* ——— polished dark marble floor, one continuous reflection ——— */}
+      {/* ——— polished dark marble floor, one continuous planar reflection ——— */}
       <mesh rotation-x={-Math.PI / 2} position={[0, 0, zMid]} receiveShadow>
         <planeGeometry args={[HALL.width + 4, length + 8]} />
         <MeshReflectorMaterial
+          map={marble.map}
+          roughnessMap={marble.roughnessMap}
+          normalMap={marble.normalMap}
+          normalScale={[0.45, 0.45]}
           resolution={1024}
-          mirror={0.45}
-          blur={[300, 80]}
-          mixBlur={0.9}
-          mixStrength={1.6}
+          mirror={0.5}
+          blur={[350, 90]}
+          mixBlur={1}
+          mixStrength={1.5}
           depthScale={1.2}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.4}
-          roughness={0.7}
-          metalness={0.35}
-          color="#121114"
+          roughness={1}
+          metalness={0.25}
+          color="#ffffff"
+          envMapIntensity={0.5}
         />
       </mesh>
 
       {/* ——— long side walls ——— */}
-      <mesh position={[-(HALL.width / 2 + 0.5), HALL.height / 2, zMid]} material={concrete} receiveShadow>
+      <mesh position={[-(HALL.width / 2 + 0.5), HALL.height / 2, zMid]} material={concreteWall} receiveShadow>
         <boxGeometry args={[1, HALL.height, length]} />
       </mesh>
-      <mesh position={[HALL.width / 2 + 0.5, HALL.height / 2, zMid]} material={concrete} receiveShadow>
+      <mesh position={[HALL.width / 2 + 0.5, HALL.height / 2, zMid]} material={concreteWall} receiveShadow>
         <boxGeometry args={[1, HALL.height, length]} />
       </mesh>
 
       {/* ——— entrance wall behind the camera start ——— */}
-      <mesh position={[0, HALL.height / 2, HALL.zStart + 1]} material={concrete}>
+      <mesh position={[0, HALL.height / 2, HALL.zStart + 1]} material={concretePartition}>
         <boxGeometry args={[HALL.width + 2, HALL.height, 1]} />
       </mesh>
       {/* ——— far end wall ——— */}
-      <mesh position={[0, HALL.height / 2, HALL.zEnd - 1]} material={concreteDark}>
+      <mesh position={[0, HALL.height / 2, HALL.zEnd - 1]} material={concretePartition}>
         <boxGeometry args={[HALL.width + 2, HALL.height, 1]} />
       </mesh>
 
@@ -217,10 +284,10 @@ export default function Museum() {
       ))}
 
       {/* ——— corridor: inner walls narrow the passage ——— */}
-      <mesh position={[-8.5, HALL.height / 2 - 1.5, -39]} material={concrete}>
+      <mesh position={[-8.5, HALL.height / 2 - 1.5, -39]} material={concretePartition}>
         <boxGeometry args={[3, HALL.height - 3, 18]} />
       </mesh>
-      <mesh position={[8.5, HALL.height / 2 - 1.5, -39]} material={concrete}>
+      <mesh position={[8.5, HALL.height / 2 - 1.5, -39]} material={concretePartition}>
         <boxGeometry args={[3, HALL.height - 3, 18]} />
       </mesh>
 
@@ -234,7 +301,7 @@ export default function Museum() {
       <CorridorSculptures />
 
       {/* ——— freestanding partial wall inside exhibition room (adds depth) ——— */}
-      <mesh position={[-7, 3.2, -58]} material={concrete} castShadow>
+      <mesh position={[-7, 3.2, -58]} material={concretePartition} castShadow>
         <boxGeometry args={[0.8, 6.4, 10]} />
       </mesh>
     </group>

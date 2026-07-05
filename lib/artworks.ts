@@ -170,7 +170,7 @@ export function getArtworkCanvas(id: number): HTMLCanvasElement {
   if (existing) return existing;
 
   const art = ARTWORKS[id];
-  const W = 640;
+  const W = 800;
   const H = Math.round(W / art.aspect);
   const canvas = document.createElement("canvas");
   canvas.width = W;

@@ -168,8 +168,9 @@ export function Lights() {
   return (
     <group>
       <primitive object={sunTarget} />
-      <ambientLight intensity={0.45} color="#cfc8bc" />
-      <hemisphereLight intensity={0.3} color="#e8dcc4" groundColor="#0d0c0e" />
+      {/* the environment map now carries the ambient term; these are trims */}
+      <ambientLight intensity={0.22} color="#cfc8bc" />
+      <hemisphereLight intensity={0.18} color="#e8dcc4" groundColor="#0d0c0e" />
 
       {/* key sun through the lobby skylight */}
       <directionalLight

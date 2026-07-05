@@ -17,6 +17,10 @@ export default function CanvasScene() {
           powerPreference: "high-performance",
           stencil: false,
         }}
+        onCreated={({ gl }) => {
+          // filmic exposure lift — ACES tone mapping is the R3F default
+          gl.toneMappingExposure = 1.12;
+        }}
       >
         <Scene />
       </Canvas>

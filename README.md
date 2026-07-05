@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Muse — Your Art. Your Digital Museum.
 
-## Getting Started
+An immersive, cinematic landing page for **Muse**, an AI-powered digital museum
+platform for artists. Instead of scrolling a page, visitors walk through a
+rendered contemporary museum: scrolling dollies the camera through seven rooms —
+lobby, sculpture corridor, exhibition hall, AI curator room, store gallery,
+membership hall, and a final gold-ring rotunda.
 
-First, run the development server:
+## Run it
 
 ```bash
-npm run dev
+npm install
+npm run dev      # http://localhost:3000
 # or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## How it works
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **3D layer** — React Three Fiber renders one continuous procedural museum
+  ([components/scene/Museum.tsx](components/scene/Museum.tsx)): planar-reflective
+  marble floor (drei `MeshReflectorMaterial`), concrete walls with doorway
+  partitions, skylights with custom volumetric light-shaft shaders, GPU dust
+  particles, and a marble torus-knot sculpture.
+- **Rendering** — full PBR pipeline: procedural texture sets (veined marble
+  slabs, board-formed concrete with tie holes — albedo/roughness/normal maps
+  generated on canvas, [lib/textures.ts](lib/textures.ts)), image-based
+  lighting baked from museum-shaped light panels (drei `Environment` +
+  `Lightformer`), N8AO screen-space ambient occlusion, baked soft contact
+  shadows, ACES filmic tone mapping, and a post chain of depth of field,
+  bloom, film grain, vignette, and SMAA anti-aliasing.
+- **Camera** — scroll progress (smoothed by Lenis) maps to arc-length position
+  on a Catmull-Rom dolly path with a parallel gaze curve
+  ([components/scene/CameraRig.tsx](components/scene/CameraRig.tsx)), plus
+  cursor parallax and idle "breathing".
+- **Editorial layer** — eight invisible 100vh spacers give the page its scroll
+  length; fixed panels are choreographed against them with GSAP ScrollTrigger
+  ([components/ui/Overlay.tsx](components/ui/Overlay.tsx)).
+- **Artwork** — every painting is generated at runtime from a seeded RNG
+  ([lib/artworks.ts](lib/artworks.ts)); the site ships zero image assets.
+  Interactive pieces lift and glow on hover and open a fullscreen viewing room
+  with the work's story.
+- **AI curator room** — holographic artwork cards drift in disorder and
+  organize into three curated columns as you walk in, gold threads connecting
+  each exhibition ([components/scene/CuratorRoom.tsx](components/scene/CuratorRoom.tsx)).
+- **Resilience** — capability probe falls back to a static editorial page
+  without WebGL; mobile gets reduced particle counts, DPR, and effects.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Stack: Next.js 16 · React 19 · TypeScript · Tailwind 4 · Three.js ·
+React Three Fiber · @react-three/drei · postprocessing · GSAP ScrollTrigger ·
+Lenis · Framer Motion.

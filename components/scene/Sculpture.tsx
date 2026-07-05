@@ -41,6 +41,7 @@ export default function Sculpture() {
           clearcoatRoughness={0.5}
           sheen={0.4}
           sheenColor="#fff2dd"
+          envMapIntensity={0.9}
         />
       </mesh>
 
