@@ -1,23 +1,28 @@
 "use client";
 
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { world, damp } from "@/lib/world";
 import { SCULPTURE_POS } from "./Museum";
+import { SCULPTURE_MODEL } from "@/lib/customModels";
+import UploadedModel from "./UploadedModel";
 
-/** Monumental marble knot on the left of the lobby, under the oculus. */
+/** Top of the stone dais the sculpture stands on. */
+const DAIS_TOP = 1.3;
+
+/** Monumental piece on the left of the lobby, under the oculus. */
 export default function Sculpture() {
-  const knot = useRef<THREE.Mesh>(null);
+  const spin = useRef<THREE.Object3D>(null);
   const sway = useRef(0);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20);
-    if (!knot.current) return;
+    if (!spin.current) return;
     // perpetual slow rotation + a few degrees of cursor influence
     sway.current = damp(sway.current, world.mouse.x * 0.14, 2.5, dt);
-    knot.current.rotation.y = state.clock.elapsedTime * 0.07 + sway.current;
-    knot.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.11) * 0.04;
+    spin.current.rotation.y = state.clock.elapsedTime * 0.07 + sway.current;
+    spin.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.11) * 0.04;
   });
 
   return (
@@ -32,19 +37,29 @@ export default function Sculpture() {
         <meshStandardMaterial color="#232227" roughness={0.6} metalness={0.15} />
       </mesh>
 
-      <mesh ref={knot} position-y={3.15} castShadow>
-        <torusKnotGeometry args={[1.15, 0.36, 260, 40]} />
-        <meshPhysicalMaterial
-          color="#e6e1d6"
-          roughness={0.26}
-          metalness={0.02}
-          clearcoat={0.5}
-          clearcoatRoughness={0.5}
-          sheen={0.4}
-          sheenColor="#fff2dd"
-          envMapIntensity={0.9}
-        />
-      </mesh>
+      {SCULPTURE_MODEL ? (
+        // your uploaded statue, sitting on the dais and slowly turning
+        <group ref={spin as React.RefObject<THREE.Group>} position-y={DAIS_TOP}>
+          <Suspense fallback={null}>
+            <UploadedModel model={SCULPTURE_MODEL} targetSize={3.8} ground />
+          </Suspense>
+        </group>
+      ) : (
+        // built-in marble knot
+        <mesh ref={spin as React.RefObject<THREE.Mesh>} position-y={3.15} castShadow>
+          <torusKnotGeometry args={[1.15, 0.36, 260, 40]} />
+          <meshPhysicalMaterial
+            color="#e6e1d6"
+            roughness={0.26}
+            metalness={0.02}
+            clearcoat={0.5}
+            clearcoatRoughness={0.5}
+            sheen={0.4}
+            sheenColor="#fff2dd"
+            envMapIntensity={0.9}
+          />
+        </mesh>
+      )}
 
       {/* faint gold accent ring floating around the base */}
       <mesh position-y={1.34} rotation-x={Math.PI / 2}>

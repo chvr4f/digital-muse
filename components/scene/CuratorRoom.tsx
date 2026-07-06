@@ -3,8 +3,14 @@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { getArtworkCanvas } from "@/lib/artworks";
+import { ARTWORKS, getArtworkCanvas } from "@/lib/artworks";
 import { world, smoothstep, damp } from "@/lib/world";
+import { PAINTING_IMAGES, imageUrl } from "@/lib/customModels";
+
+/** Aspect (w/h) for an artwork id — the uploaded image's, or the procedural default. */
+function artAspect(id: number) {
+  return PAINTING_IMAGES[id]?.aspect ?? ARTWORKS[id].aspect;
+}
 
 /**
  * The AI curator at work: twelve holographic artwork cards drift in disorder,
@@ -58,15 +64,19 @@ export default function CuratorRoom() {
   const groupRefs = useRef<(THREE.Group | null)[]>([]);
   const organizeK = useRef(0);
 
-  const textures = useMemo(
-    () =>
-      cards.map((c) => {
-        const tex = new THREE.CanvasTexture(getArtworkCanvas(c.artId));
-        tex.colorSpace = THREE.SRGBColorSpace;
-        return tex;
-      }),
-    [cards],
-  );
+  const textures = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    return cards.map((c) => {
+      const custom = PAINTING_IMAGES[c.artId];
+      // real uploaded image where we have one; procedural canvas otherwise
+      const tex = custom
+        ? loader.load(imageUrl(custom.file))
+        : new THREE.CanvasTexture(getArtworkCanvas(c.artId));
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      return tex;
+    });
+  }, [cards]);
 
   // connection lines between consecutive cards of each cluster
   const lineGeometry = useMemo(() => {
@@ -133,38 +143,43 @@ export default function CuratorRoom() {
 
   return (
     <group>
-      {cards.map((c, i) => (
-        <group key={i} ref={(el) => void (groupRefs.current[i] = el)}>
-          {/* hologram canvas */}
-          <mesh>
-            <planeGeometry args={[1.15, 1.45]} />
-            <meshBasicMaterial
-              map={textures[i]}
-              transparent
-              opacity={0.88}
-              side={THREE.DoubleSide}
-              toneMapped={false}
-            />
-          </mesh>
-          {/* gold hologram frame */}
-          <lineSegments>
-            <edgesGeometry args={[new THREE.PlaneGeometry(1.23, 1.53)]} />
-            <lineBasicMaterial color="#c9a96e" transparent opacity={0.8} toneMapped={false} />
-          </lineSegments>
-          {/* soft under-glow */}
-          <mesh position-z={-0.02}>
-            <planeGeometry args={[1.45, 1.75]} />
-            <meshBasicMaterial
-              color="#c9a96e"
-              transparent
-              opacity={0.06}
-              blending={THREE.AdditiveBlending}
-              depthWrite={false}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        </group>
-      ))}
+      {cards.map((c, i) => {
+        // card sized to the artwork's real aspect, ~1.45 tall, uniform border
+        const h = 1.45;
+        const w = h * artAspect(c.artId);
+        return (
+          <group key={i} ref={(el) => void (groupRefs.current[i] = el)}>
+            {/* hologram canvas */}
+            <mesh>
+              <planeGeometry args={[w, h]} />
+              <meshBasicMaterial
+                map={textures[i]}
+                transparent
+                opacity={0.88}
+                side={THREE.DoubleSide}
+                toneMapped={false}
+              />
+            </mesh>
+            {/* gold hologram frame */}
+            <lineSegments>
+              <edgesGeometry args={[new THREE.PlaneGeometry(w + 0.08, h + 0.08)]} />
+              <lineBasicMaterial color="#c9a96e" transparent opacity={0.8} toneMapped={false} />
+            </lineSegments>
+            {/* soft under-glow */}
+            <mesh position-z={-0.02}>
+              <planeGeometry args={[w + 0.3, h + 0.3]} />
+              <meshBasicMaterial
+                color="#c9a96e"
+                transparent
+                opacity={0.06}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+          </group>
+        );
+      })}
 
       <lineSegments geometry={lineGeometry} material={lineMaterial} frustumCulled={false} />
 

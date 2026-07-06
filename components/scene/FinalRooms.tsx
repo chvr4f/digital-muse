@@ -1,22 +1,30 @@
 "use client";
 
-import { useMemo, useRef, type ReactNode } from "react";
+import { Suspense, useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { getArtworkCanvas } from "@/lib/artworks";
+import { ARTWORKS, getArtworkCanvas } from "@/lib/artworks";
+import { PAINTING_IMAGES, STORE_MODELS, imageUrl, type CustomModel } from "@/lib/customModels";
 import { Plinth } from "./Museum";
+import UploadedModel from "./UploadedModel";
+
+/** Which pieces are sold as leaning prints in the store. */
+const PRINT_IDS = [1, 4, 6, 9];
 
 /** Store gallery (z −88…−104): leaning framed prints and pedestal editions. */
 export function StoreGallery() {
-  const printTextures = useMemo(
-    () =>
-      [1, 4, 6, 9].map((id) => {
-        const tex = new THREE.CanvasTexture(getArtworkCanvas(id));
-        tex.colorSpace = THREE.SRGBColorSpace;
-        return tex;
-      }),
-    [],
-  );
+  const printTextures = useMemo(() => {
+    const loader = new THREE.TextureLoader();
+    return PRINT_IDS.map((id) => {
+      const custom = PAINTING_IMAGES[id];
+      const tex = custom
+        ? loader.load(imageUrl(custom.file))
+        : new THREE.CanvasTexture(getArtworkCanvas(id));
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      return tex;
+    });
+  }, []);
 
   return (
     <group>
@@ -26,8 +34,10 @@ export function StoreGallery() {
         <meshStandardMaterial color="#2b2118" roughness={0.5} />
       </mesh>
       {printTextures.map((tex, i) => {
+        const id = PRINT_IDS[i];
+        const aspect = PAINTING_IMAGES[id]?.aspect ?? ARTWORKS[id].aspect;
         const h = 1.7 + (i % 2) * 0.3;
-        const w = h * 0.78;
+        const w = h * aspect;
         return (
           <group
             key={i}
@@ -47,12 +57,12 @@ export function StoreGallery() {
         );
       })}
 
-      {/* pedestal editions in the middle of the room */}
+      {/* pedestal editions in the middle of the room — sculpture editions for sale */}
       {[
-        { x: 3.5, z: -94, geo: <dodecahedronGeometry args={[0.42, 0]} /> },
-        { x: 5.5, z: -98, geo: <octahedronGeometry args={[0.45, 0]} /> },
+        { x: 3.5, z: -94, model: STORE_MODELS[0], geo: <dodecahedronGeometry args={[0.42, 0]} /> },
+        { x: 5.5, z: -98, model: STORE_MODELS[1], geo: <octahedronGeometry args={[0.45, 0]} /> },
       ].map((p, i) => (
-        <PedestalEdition key={i} x={p.x} z={p.z}>
+        <PedestalEdition key={i} x={p.x} z={p.z} model={p.model}>
           {p.geo}
         </PedestalEdition>
       ))}
@@ -60,7 +70,17 @@ export function StoreGallery() {
   );
 }
 
-function PedestalEdition({ x, z, children }: { x: number; z: number; children: ReactNode }) {
+function PedestalEdition({
+  x,
+  z,
+  model,
+  children,
+}: {
+  x: number;
+  z: number;
+  model?: CustomModel | null;
+  children: ReactNode;
+}) {
   const spotTarget = useMemo(() => {
     const o = new THREE.Object3D();
     o.position.set(0, 1.6, 0);
@@ -69,10 +89,19 @@ function PedestalEdition({ x, z, children }: { x: number; z: number; children: R
   return (
     <group position={[x, 0, z]}>
       <Plinth position={[0, 0, 0]} height={1.15} size={0.8} />
-      <mesh position-y={1.62} castShadow>
-        {children}
-        <meshPhysicalMaterial color="#d8b478" roughness={0.25} metalness={0.85} />
-      </mesh>
+      {model ? (
+        // a statue edition standing on the plinth (top at y = 1.15)
+        <Suspense fallback={null}>
+          <group position-y={1.15}>
+            <UploadedModel model={model} targetSize={1.15} ground />
+          </group>
+        </Suspense>
+      ) : (
+        <mesh position-y={1.62} castShadow>
+          {children}
+          <meshPhysicalMaterial color="#d8b478" roughness={0.25} metalness={0.85} />
+        </mesh>
+      )}
       <primitive object={spotTarget} />
       <spotLight
         position={[0, 5, 1.5]}

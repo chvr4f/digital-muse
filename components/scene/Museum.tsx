@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import * as THREE from "three";
 import { MeshReflectorMaterial } from "@react-three/drei";
 import { getMarbleMaps, getConcreteMaps } from "@/lib/textures";
+import { CORRIDOR_MODELS } from "@/lib/customModels";
+import UploadedModel from "./UploadedModel";
 
 /**
  * Museum plan (all rooms share long side walls at x = ±13, ceiling y = 12):
@@ -173,14 +175,26 @@ function CorridorSculptures() {
   );
   return (
     <group>
-      {pieces.map((p, i) => (
-        <group key={i} position={[p.x, 0, p.z]}>
-          <Plinth position={[0, 0, 0]} />
-          <mesh position-y={1.85} castShadow material={marbleWhite} rotation={[0.3 * i, 0.8 * i, 0]}>
-            {p.geo}
-          </mesh>
-        </group>
-      ))}
+      {pieces.map((p, i) => {
+        const model = CORRIDOR_MODELS[i];
+        return (
+          <group key={i} position={[p.x, 0, p.z]}>
+            <Plinth position={[0, 0, 0]} />
+            {model ? (
+              // your uploaded statue, standing on the plinth (top at y = 1.3)
+              <Suspense fallback={null}>
+                <group position-y={1.3}>
+                  <UploadedModel model={model} targetSize={1.8} ground />
+                </group>
+              </Suspense>
+            ) : (
+              <mesh position-y={1.85} castShadow material={marbleWhite} rotation={[0.3 * i, 0.8 * i, 0]}>
+                {p.geo}
+              </mesh>
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 }

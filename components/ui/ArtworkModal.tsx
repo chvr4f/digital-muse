@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ARTWORKS, getArtworkCanvas } from "@/lib/artworks";
+import { PAINTING_IMAGES, imageUrl } from "@/lib/customModels";
 
 /**
  * Fullscreen viewing room. Clicking a painting on the wall zooms the piece
@@ -15,11 +16,22 @@ export default function ArtworkModal({
   artworkId: number | null;
   onClose: () => void;
 }) {
-  const art = artworkId !== null ? ARTWORKS[artworkId] : null;
-  const src = useMemo(
-    () => (artworkId !== null ? getArtworkCanvas(artworkId).toDataURL("image/jpeg", 0.92) : ""),
-    [artworkId],
-  );
+  const base = artworkId !== null ? ARTWORKS[artworkId] : null;
+  const custom = artworkId !== null ? PAINTING_IMAGES[artworkId] : undefined;
+  // merge: uploaded image + its wall text overrides the procedural defaults
+  const art = base && {
+    ...base,
+    title: custom?.title ?? base.title,
+    artist: custom?.artist ?? base.artist,
+    year: custom?.year ?? base.year,
+    medium: custom?.medium ?? base.medium,
+    story: custom?.story ?? base.story,
+  };
+  const src = useMemo(() => {
+    if (artworkId === null) return "";
+    if (custom) return imageUrl(custom.file);
+    return getArtworkCanvas(artworkId).toDataURL("image/jpeg", 0.92);
+  }, [artworkId, custom]);
 
   useEffect(() => {
     if (artworkId === null) return;

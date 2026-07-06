@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { Environment, Lightformer, ContactShadows } from "@react-three/drei";
+import { Environment, Lightformer, ContactShadows, useGLTF } from "@react-three/drei";
 import { EffectComposer, Bloom, DepthOfField, Noise, Vignette, N8AO, SMAA } from "@react-three/postprocessing";
 import Museum from "./Museum";
 import Sculpture from "./Sculpture";
@@ -11,6 +11,10 @@ import { StoreGallery, MembershipRoom, FinalRoom } from "./FinalRooms";
 import { LightShaft, DustParticles, Lights } from "./Atmosphere";
 import CameraRig from "./CameraRig";
 import { world } from "@/lib/world";
+import { customModelFiles, modelUrl } from "@/lib/customModels";
+
+// warm the cache for any uploaded models so they stream in during the intro
+customModelFiles().forEach((file) => useGLTF.preload(modelUrl(file)));
 
 export default function Scene() {
   return (
