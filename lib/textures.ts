@@ -374,3 +374,93 @@ export function getConcreteMaps(): PBRMaps {
   };
   return concreteCache;
 }
+
+let stoneWallCache: PBRMaps | null = null;
+
+/**
+ * Warm limestone wall cladding, divided into large panels by recessed vertical
+ * reveals — the tall stone paneling of a real gallery, not raw concrete. The
+ * grooves are drawn on the tile seams (x = k·gap) so the panel rhythm tiles
+ * seamlessly no matter how many times the material repeats along a wall.
+ */
+export function getStoneWallMaps(): PBRMaps {
+  if (stoneWallCache) return stoneWallCache;
+  const size = 1024;
+  const rand = rng(4211);
+  const PANELS = 4; // vertical panels per repeat
+  const gap = size / PANELS;
+
+  const albedo = document.createElement("canvas");
+  albedo.width = albedo.height = size;
+  const a = albedo.getContext("2d")!;
+  a.fillStyle = "#8a8072"; // warm limestone
+  a.fillRect(0, 0, size, size);
+
+  const heightC = document.createElement("canvas");
+  heightC.width = heightC.height = size;
+  const hc = heightC.getContext("2d")!;
+  hc.fillStyle = "#9a9a9a"; // panel face at mid height
+  hc.fillRect(0, 0, size, size);
+
+  const rough = document.createElement("canvas");
+  rough.width = rough.height = size;
+  const r = rough.getContext("2d")!;
+  r.fillStyle = "#c4c4c4"; // soft matte stone
+  r.fillRect(0, 0, size, size);
+
+  // soft cloudy tonal drift + fine grain — subtle, so the stone reads calm
+  paintNoise(a, size, 811, [
+    { cells: 6, alpha: 0.1 },
+    { cells: 24, alpha: 0.06 },
+    { cells: 96, alpha: 0.045 },
+  ]);
+  paintNoise(a, size, 812, [{ cells: 512, alpha: 0.035 }]);
+  paintNoise(hc, size, 811, [
+    { cells: 24, alpha: 0.06 },
+    { cells: 256, alpha: 0.05 },
+  ]);
+  paintNoise(r, size, 813, [{ cells: 128, alpha: 0.08 }], "soft-light");
+
+  // a few whisper-faint veins for stone character
+  for (let i = 0; i < 5; i++) drawVein(a, rand, size, 1 + rand() * 1.4, 0.045, "#6b6357");
+  a.globalAlpha = 1;
+
+  // recessed vertical reveals between panels
+  for (let k = 0; k <= PANELS; k++) {
+    const x = k * gap;
+    // albedo: dark recess with soft AO shoulders and a faint catch-light lip
+    a.globalAlpha = 0.5;
+    a.fillStyle = "#2c2822";
+    a.fillRect(x - 2, 0, 4, size);
+    a.globalAlpha = 0.16;
+    a.fillStyle = "#413b32";
+    a.fillRect(x - 8, 0, 6, size);
+    a.fillRect(x + 2, 0, 6, size);
+    a.globalAlpha = 0.1;
+    a.fillStyle = "#b7ad99";
+    a.fillRect(x + 2, 0, 2, size);
+    a.globalAlpha = 1;
+
+    // height: groove sits lower than the panel faces
+    hc.fillStyle = "#3a3a3a";
+    hc.fillRect(x - 2, 0, 4, size);
+    hc.globalAlpha = 0.5;
+    hc.fillStyle = "#6c6c6c";
+    hc.fillRect(x - 6, 0, 4, size);
+    hc.fillRect(x + 2, 0, 4, size);
+    hc.globalAlpha = 1;
+
+    // roughness: the recess is a touch rougher than the polished-ish face
+    r.globalAlpha = 0.5;
+    r.fillStyle = "#dcdcdc";
+    r.fillRect(x - 2, 0, 4, size);
+    r.globalAlpha = 1;
+  }
+
+  stoneWallCache = {
+    map: toTexture(albedo, true),
+    roughnessMap: toTexture(rough, false),
+    normalMap: toTexture(heightToNormal(heightC, 2.4), false),
+  };
+  return stoneWallCache;
+}

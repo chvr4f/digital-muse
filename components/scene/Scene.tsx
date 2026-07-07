@@ -20,7 +20,7 @@ export default function Scene() {
   return (
     <>
       <color attach="background" args={["#09090b"]} />
-      <fogExp2 attach="fog" args={["#0a0908", 0.017]} />
+      <fogExp2 attach="fog" args={["#0a0908", 0.012]} />
 
       <CameraRig />
       <Lights />
@@ -97,18 +97,20 @@ export default function Scene() {
 
       {world.isMobile ? (
         <EffectComposer multisampling={0}>
-          <Bloom intensity={0.5} luminanceThreshold={0.75} luminanceSmoothing={0.25} mipmapBlur />
-          <Noise premultiply opacity={0.45} />
-          <Vignette eskil={false} offset={0.16} darkness={0.72} />
+          <Bloom intensity={0.42} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
+          <Noise premultiply opacity={0.05} />
+          <Vignette eskil={false} offset={0.2} darkness={0.5} />
           <SMAA />
         </EffectComposer>
       ) : (
+        // N8AO is incompatible with EffectComposer multisampling — keep it 0 and
+        // let SMAA + a higher device-pixel-ratio handle edge quality.
         <EffectComposer multisampling={0}>
-          <N8AO aoRadius={1.4} intensity={2.8} distanceFalloff={0.6} quality="medium" halfRes color="black" />
-          <DepthOfField focusDistance={0.028} focalLength={0.085} bokehScale={1.8} height={480} />
-          <Bloom intensity={0.55} luminanceThreshold={0.72} luminanceSmoothing={0.25} mipmapBlur />
-          <Noise premultiply opacity={0.42} />
-          <Vignette eskil={false} offset={0.16} darkness={0.72} />
+          <N8AO aoRadius={1.4} intensity={2.6} distanceFalloff={0.6} quality="medium" halfRes color="black" />
+          <DepthOfField focusDistance={0.015} focalLength={0.045} bokehScale={1.1} height={720} />
+          <Bloom intensity={0.5} luminanceThreshold={0.78} luminanceSmoothing={0.3} mipmapBlur />
+          <Noise premultiply opacity={0.04} />
+          <Vignette eskil={false} offset={0.22} darkness={0.5} />
           <SMAA />
         </EffectComposer>
       )}
