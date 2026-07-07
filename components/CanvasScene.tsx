@@ -9,7 +9,7 @@ export default function CanvasScene() {
   return (
     <div className="fixed inset-0 z-0">
       <Canvas
-        shadows="soft"
+        shadows="variance"
         camera={{ fov: 55, near: 0.1, far: 170, position: [0, 6.5, 15.5] }}
         dpr={world.isMobile ? [1, 1.75] : [1, 2]}
         gl={{

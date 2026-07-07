@@ -187,6 +187,8 @@ export function Lights() {
         shadow-camera-top={14}
         shadow-camera-bottom={-14}
         shadow-bias={-0.0004}
+        shadow-radius={6}
+        shadow-blurSamples={20}
       />
 
       {/* room fills — warm, dim, no shadows */}
